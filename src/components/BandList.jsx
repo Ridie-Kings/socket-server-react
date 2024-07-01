@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
+import { SocketContext } from "../context/SocketContext";
 
-import PropTypes from "prop-types";
+export const BandList = () => {
 
-export const BandList = ({ data, vote, deleteBand, renameBand }) => {
-
-    const [bands, setBands] = useState(data)
+    const [bands, setBands] = useState([])
+    const { socket } = useContext(SocketContext)
 
     useEffect(() => {
-        setBands(data)
-    }, [data])
+        socket.on('current-bands', (bands) => {
+            setBands(bands);
+        })
+
+        return () => socket.off('current-bands')
+    }, [socket])
 
     const changeName = (e, id) => {
         const newName = e.target.value;
@@ -20,8 +24,15 @@ export const BandList = ({ data, vote, deleteBand, renameBand }) => {
     }
 
     const onLostFocus = (id, name) => {
-        console.log(id, name);
-        renameBand(id, name)
+        socket.emit('rename-band', { id, name })
+    }
+
+    const vote = (id) => {
+        socket.emit('vote-band', id)
+    }
+
+    const removeBand = (id) => {
+        socket.emit('remove-band', id)
     }
 
 
@@ -44,7 +55,7 @@ export const BandList = ({ data, vote, deleteBand, renameBand }) => {
                         <h3>{band.votes}</h3>
                     </td>
                     <td>
-                        <button className="button is-danger" onClick={() => deleteBand(band.id)}>Borrar</button>
+                        <button className="button is-danger" onClick={() => removeBand(band.id)}>Borrar</button>
                     </td>
                 </tr>
             ))
@@ -70,11 +81,4 @@ export const BandList = ({ data, vote, deleteBand, renameBand }) => {
             </table>
         </>
     )
-}
-
-BandList.propTypes = {
-    data: PropTypes.array.isRequired,
-    vote: PropTypes.func.isRequired,
-    deleteBand: PropTypes.func.isRequired,
-    renameBand: PropTypes.func.isRequired
 }

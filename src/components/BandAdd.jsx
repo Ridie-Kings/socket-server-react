@@ -1,14 +1,15 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useContext, useState } from "react";
+import { SocketContext } from "../context/SocketContext";
 
-export const BandAdd = ({ createBand }) => {
+export const BandAdd = () => {
 
     const [value, setValue] = useState('')
+    const { socket } = useContext(SocketContext)
 
     const onSubmit = (e) => {
         e.preventDefault();
         if (value.trim().length > 0) {
-            createBand(value);
+            socket.emit('add-band', { name: value })
             setValue('');
         }
     }
@@ -33,8 +34,4 @@ export const BandAdd = ({ createBand }) => {
             </form>
         </>
     )
-}
-
-BandAdd.propTypes = {
-    createBand: PropTypes.func.isRequired
 }
